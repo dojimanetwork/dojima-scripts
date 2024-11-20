@@ -1,0 +1,20 @@
+{
+  "name": "dojima-scripts",
+  "version": "1.0.0",
+  "description": "scripts to setup dojima network",
+  "main": "index.js",
+  "author": "Dojima Labs",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^22.9.1",
+    "@types/yargs": "^17.0.10",
+    "ethers": "^5.6.1",
+    "path": "^0.12.7",
+    "typescript": "^5.6.3",
+    "yargs": "^17.4.0"
+  },
+  "private": true,
+  "scripts": {
+    "build": "tsc -p ."
+  }
+}

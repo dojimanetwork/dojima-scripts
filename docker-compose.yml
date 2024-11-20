@@ -1,0 +1,58 @@
+version: '3.8'
+
+name: dojima-network
+services:
+
+  scripts:
+    build: scripts/
+    container_name: dojima-scripts
+    volumes:
+      - "geth-keystore:/home/user/geth-keystore"
+      - "hermes-keystore:/home/user/hermes-keystore"
+      - "dojima-keystore:/home/user/dojima-keystore"
+      - "geth-config:/geth-config"
+
+  geth:
+    image: ethereum/client-go:stable
+    ports:
+      - "127.0.0.1:8545:8545"
+      - "127.0.0.1:8551:8551"
+      - "127.0.0.1:8546:8546"
+      - "127.0.0.1:30303:30303"
+    volumes:
+      - "geth-data:/geth-data"
+      - "geth-keystore:/geth-keystore"
+      - "geth-config:/geth-config"
+    command:
+      - --keystore=/geth-keystore
+      - --http
+      - --datadir=/geth-data
+      - --http.addr=0.0.0.0
+      - --authrpc.vhosts=*
+      - --authrpc.port=8551
+      - --authrpc.addr=0.0.0.0
+      - --http.vhosts=*
+      - --http.api=engine,personal,eth,net,web3
+      - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.api=personal,eth,net,web3,debug,txpool
+      - --allow-insecure-unlock
+      - --unlock=0x3f1Eae7D46d88F08fc2F8ed27FCb2AB183EB2d0E
+      - --password=/geth-data/passphrase
+      - --authrpc.jwtsecret=/geth-config/jwt.hex
+      - --nodiscover
+      - --syncmode=full
+      - --state.scheme=hash
+      - --dev
+      - --dev.period=1
+      - --mine
+      - --miner.etherbase=0x3f1Eae7D46d88F08fc2F8ed27FCb2AB183EB2d0E
+      - --gcmode=archive
+
+volumes:
+  geth-data:
+  geth-keystore:
+  geth-config:
+  hermes-keystore:
+  dojima-keystore:
