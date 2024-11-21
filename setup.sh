@@ -39,9 +39,15 @@ simple=true
 
 build_node_images=false
 
+# geth paths
 geth_config_path="/geth-config"
 geth_keystore_path="/geth-keystore"
 geth_data_path="/geth-data"
+
+# dojima paths
+dojima_config_path="/dojima-config"
+dojima_keystore_path="/dojima-keystore"
+dojima_data_path="/dojima-data"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -66,21 +72,27 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-dojima)
             run_dojima=false
+            shift
             ;;
         --no-geth)
             run_geth=false
+            shift
             ;;
         --no-hermes)
             run_hermes=false
+            shift
             ;;
         --l2chain)
             l2chain=true
+            shift
             ;;
         --dojima-explorer)
             dojima_explorer=true
+            shift
             ;;
         --simple)
             simple=true
+            shift
             ;;
         *)
             echo Usage: $0 \[OPTIONS..]
@@ -134,19 +146,39 @@ if $force_init; then
         docker volume rm $leftoverVolumes
     fi
 
-    echo == Generating geth keys
-    docker compose run scripts write-geth-accounts
+    if $run_geth; then
+        echo == Generating geth keys
+        docker compose run scripts write-geth-accounts
 
-    docker compose run --entrypoint sh geth -c "echo passphrase > $geth_data_path/passphrase"
-    docker compose run --entrypoint sh geth -c "chown -R 1000:1000 $geth_keystore_path"
-    docker compose run --entrypoint sh geth -c "chown -R 1000:1000 $geth_config_path"
+        docker compose run --entrypoint sh geth -c "echo passphrase > $geth_data_path/passphrase"
+        docker compose run --entrypoint sh geth -c "chown -R 1000:1000 $geth_keystore_path"
+        docker compose run --entrypoint sh geth -c "chown -R 1000:1000 $geth_config_path"
 
-    echo == Writing geth genesis config
-    docker compose run scripts write-geth-config
+        echo == Writing geth genesis config
+        docker compose run scripts write-geth-config
 
-    echo == Initializing go-ethereum genesis configuration
-    docker compose run geth init --state.scheme hash --datadir $geth_data_path $geth_config_path/geth_genesis.json
+        echo == Initializing go-ethereum genesis configuration
+        docker compose run geth init --state.scheme hash --datadir $geth_data_path $geth_config_path/geth_genesis.json
 
-    echo == Starting geth
-    docker compose up --wait geth
+        echo == Starting geth
+        docker compose up --wait geth
+    fi
+
+    if $run_dojima; then
+        echo == Generating dojima keys
+        docker compose run scripts write-dojima-account
+
+        docker compose run --entrypoint sh dojimachain -c "echo password > $dojima_data_path/passphrase"
+        docker compose run --entrypoint sh dojimachain -c "chown -R 1000:1000 $dojima_keystore_path"
+        docker compose run --entrypoint sh dojimachain -c "chown -R 1000:1000 $dojima_config_path"
+
+        echo == Writing dojima genesis config
+        docker compose run scripts write-dojima-config
+
+        echo == Initializing dojima genesis configuration
+        docker compose run dojimachain init --state.scheme hash --datadir $dojima_data_path $dojima_config_path/dojima_genesis.json
+
+        echo == Starting dojima
+        docker compose up --wait dojimachain
+    fi
 fi

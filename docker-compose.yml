@@ -11,6 +11,7 @@ services:
       - "hermes-keystore:/home/user/hermes-keystore"
       - "dojima-keystore:/home/user/dojima-keystore"
       - "geth-config:/geth-config"
+      - "dojima-config:/dojima-config"
 
   geth:
     image: ethereum/client-go:stable
@@ -50,9 +51,51 @@ services:
       - --miner.etherbase=0x3f1Eae7D46d88F08fc2F8ed27FCb2AB183EB2d0E
       - --gcmode=archive
 
+  dojimachain:
+    hostname: dojima-chain
+    image: dojimanetwork1401/dojimachain:ffa1574d2_3.0.0
+    volumes:
+      - "dojima-data:/dojima-data"
+      - "dojima-keystore:/dojima-keystore"
+      - "dojima-config:/dojima-config"
+    ports:
+      - 8549:8549
+      - 8550:8550
+      - 30303:30303
+      - 8548:8548
+    environment:
+      DOJIMA_RPC_URL: http://hermesnode:1317
+      DOJIMA_GRPC_URL: hermesnode:9090
+      NET: testnet
+    command: |
+      --mine
+      --datadir=/dojima-data
+      --keystore=/dojima-keystore
+      --unlock=0x0Fe14f0612fdcbef05dCb8bD33DCBD02DAfA46fA
+      --miner.etherbase=0x0Fe14f0612fdcbef05dCb8bD33DCBD02DAfA46fA
+      --password=/dojima-data/passphrase
+      --allow-insecure-unlock
+      --http
+      --http.api=personal,db,eth,net,web3,txpool,miner,admin,dojimachain
+      --http.addr=0.0.0.0
+      --port=30303
+      --http.port=8545
+      --http.corsdomain="*"
+      --http.vhosts=*
+      --ws
+      --ws.origins="*"
+      --ws.port=8546
+      --ws.addr=0.0.0.0
+      --ws.api=personal,db,eth,net,web3,txpool,miner,admin,dojimachain
+      --genesisfile=/dojima-config/dojima_genesis.json
+      --syncmode=full
+      --gcmode=archive
+
 volumes:
   geth-data:
   geth-keystore:
   geth-config:
   hermes-keystore:
   dojima-keystore:
+  dojima-config:
+  dojima-data:

@@ -8,18 +8,27 @@ const specialAccounts = 6;
 async function writeGethAccounts() {
     for (let i = 0; i < specialAccounts; i++) {
         const wallet = specialAccount(i)
-        let walletJSON = await wallet.encrypt(consts.gethpassphrase);
+        let walletJSON = await wallet.encrypt(consts.geth_passphrase);
         fs.writeFileSync(
-            path.join(consts.gethkeystore, wallet.address + ".key"),
+            path.join(consts.geth_keystore_path, wallet.address + ".key"),
             walletJSON
         );
     }
 }
 
-export function writeDojimaAccount(): ethers.Wallet {
+async function writeDojimaAccount() {
+    const wallet = getDojimaAccount();
+    const walletJSON = await wallet.encrypt(consts.dojima_passphrase);
+    fs.writeFileSync(
+        path.join(consts.dojima_keystore_path, wallet.address + ".key"),
+        walletJSON
+    );
+}
+
+function getDojimaAccount(): ethers.Wallet {
     return ethers.Wallet.fromMnemonic(
         consts.dojima_hermes_account_seed_phrase,
-        "m/44'/118'/0'/0/0"
+        "m/44'/184'/0'/0/0"
     );
 }
 
