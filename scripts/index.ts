@@ -3,6 +3,7 @@ import Yargs from "yargs/yargs";
 
 import { writeGethAccountsCommand, writeDojimaAccountCommand } from "./account";
 import { writeGethConfigCommand, writeDojimaConfigCommand } from "./config";
+import { writeHermesEnvCommand, writeEthEnvCommand, writeDojimaEnvCommand } from "./hermes";
 
 async function main() {
     await Yargs(hideBin(process.argv))
@@ -16,6 +17,9 @@ async function main() {
         .command(writeDojimaAccountCommand)
         .command(writeGethConfigCommand)
         .command(writeDojimaConfigCommand)
+        .command(writeHermesEnvCommand)
+        .command(writeEthEnvCommand)
+        .command(writeDojimaEnvCommand)
         .demandCommand()
         .strict()
         .help()

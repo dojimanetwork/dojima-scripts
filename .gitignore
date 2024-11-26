@@ -1,1 +1,4 @@
 .idea
+
+# hermes env file
+config/.hermes.env

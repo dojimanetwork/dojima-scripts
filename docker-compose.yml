@@ -8,18 +8,18 @@ services:
     container_name: dojima-scripts
     volumes:
       - "geth-keystore:/home/user/geth-keystore"
-      - "hermes-keystore:/home/user/hermes-keystore"
-      - "dojima-keystore:/home/user/dojima-keystore"
       - "geth-config:/geth-config"
+      - "dojima-keystore:/home/user/dojima-keystore"
       - "dojima-config:/dojima-config"
+      - "hermes-data:/home/user/hermes-data"
 
   geth:
     image: ethereum/client-go:stable
     ports:
-      - "127.0.0.1:8545:8545"
-      - "127.0.0.1:8551:8551"
-      - "127.0.0.1:8546:8546"
-      - "127.0.0.1:30303:30303"
+      - "127.0.0.1:9545:9545"
+      - "127.0.0.1:9551:9551"
+      - "127.0.0.1:9546:9546"
+      - "127.0.0.1:30304:30304"
     volumes:
       - "geth-data:/geth-data"
       - "geth-keystore:/geth-keystore"
@@ -91,11 +91,26 @@ services:
       --syncmode=full
       --gcmode=archive
 
+  hermes:
+    hostname: hermesnode
+    image: dojimanetwork1401/hermes:8514f6d2_1.0.0
+    volumes:
+      - "hermes-data:/hermes-data"
+    env_file:
+      - path: "./config/.hermes.env"
+        required: false
+    ports:
+      - 26657:26657
+      - 26656:26656
+      - 1317:1317
+      - 6060:6060
+      - 9090:9090
+
 volumes:
   geth-data:
   geth-keystore:
   geth-config:
-  hermes-keystore:
   dojima-keystore:
   dojima-config:
   dojima-data:
+  hermes-data:
