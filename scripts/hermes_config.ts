@@ -11,7 +11,6 @@ export interface HermesConfig {
     pprofEnabled: boolean;
     arAddress: string;
     dotAddress: string;
-    ethAccPass: string;
     signerName: string;
     signerPasswd: string;
     solPubkey: string;
@@ -19,20 +18,41 @@ export interface HermesConfig {
     keyPassphrase: string;
     signerSeedPhrase: string;
     sprintDuration: number;
+    chainHomeFolder: string;
     chainId: string;
     chainRpc: string;
-    chainLocalApi: string;
-    chainLocalRpc: string;
+    confPath: string;
 }
 
 export interface EthConfig {
     ethHost: string;
     ethInboundStateSender: string;
     ethRouterContract: string;
+    ethAccPass: string;
 }
 
 export interface DojimaConfig {
     dojimaChainId: number;
     dojimaGrpcUrl: string;
     dojimaRpcUrl: string;
+    dojimaSpanEnable: boolean;
+    dojimaSpanPollInterval: string;
+}
+
+export interface NaradaConfig {
+    chainApi: string;
+    chainRpc: string;
+    eddsaHost: string;
+    blockScannerBackoff: string;
+    includeEthChain: boolean;
+    includeDojChain: boolean;
+    includeAvaxChain: boolean;
+    includeBinanceChain: boolean;
+    includeBtcChain: boolean;
+    includeArChain: boolean;
+    includeDotChain: boolean;
+    includeSolChain: boolean;
+    includeGaiaChain: boolean;
+    signerSeedPhrase: string;
+    preparam: string;
 }

@@ -29,6 +29,7 @@ run=true
 run_geth=true
 run_dojima=true
 run_hermes=true
+run_narada=true
 dojima_chain_id=184
 geth_chain_id=1337
 l2chain=false
@@ -36,6 +37,8 @@ devprivkey=cbaf637f5b8c41deaf84f031db1a6230e7e831f3be79c4ed802f0f031d7ace4f
 dojima_explorer=false
 simple=true
 
+inbound_state_sender=""
+span_enable=true
 
 build_node_images=false
 
@@ -91,6 +94,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-hermes)
             run_hermes=false
+            shift
+            ;;
+        --no-narada)
+            run_narada=false
             shift
             ;;
         --l2chain)
@@ -201,21 +208,38 @@ if $force_init; then
     fi
 
     if $run_hermes; then
-        docker compose run --entrypoint sh hermes -c "chown -R 1000:1000 $hermes_data"
-
         echo == Generate hermes env
         generate_env write-hermes-env
 
         echo == Generate dojima env
-        generate_env write-dojima-env
+        generate_env write-dojima-env --dojimaSpanEnable=$span_enable
 
         if $run_geth; then
             echo == Generate ethereum env
             generate_env write-eth-env --inboundStateSender="0xde2Ea339EBB87acFd621987D008c49947961D3cc"
         fi
 
-
         echo == Starting hermes
         docker compose up --wait hermes
+
+        sleep 10
+    fi
+
+    if $run_narada; then
+        # create a variable to add flags to the narada command
+        narada_flags=""
+        if $run_dojima; then
+            narada_flags="$narada_flags --includeDojChain"
+        fi
+
+        if $run_geth; then
+            narada_flags="$narada_flags --includeEthChain"
+        fi
+
+        echo == Generate narada env
+        generate_env write-narada-env $narada_flags
+
+        echo == Starting narada
+        docker compose up --wait narada
     fi
 fi

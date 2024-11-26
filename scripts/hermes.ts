@@ -3,7 +3,8 @@ import * as fs from "fs";
 import path from 'path';
 
 import * as consts from "./consts";
-import { HermesConfig, EthConfig, DojimaConfig } from "./hermes_config";
+import { HermesConfig, EthConfig, DojimaConfig, NaradaConfig } from "./hermes_config";
+import { describe } from "yargs";
 
 // this function will take the flags and write the env file for the hermes node
 async function writeHermesEnv(argv: any) {
@@ -20,7 +21,6 @@ async function writeHermesEnv(argv: any) {
         pprofEnabled: true,
         arAddress: argv.arAddress,
         dotAddress: argv.dotAddress,
-        ethAccPass: '',
         signerName: consts.hermes_account_name,
         signerPasswd: consts.hermes_account_password,
         solPubkey: argv.solPubkey,
@@ -28,14 +28,13 @@ async function writeHermesEnv(argv: any) {
         keyPassphrase: consts.hermes_account_password,
         signerSeedPhrase: consts.dojima_hermes_account_seed_phrase,
         sprintDuration: argv.sprintDuration,
+        chainHomeFolder: argv.chainHomeFolder,
         chainId: argv.chainId,
         chainRpc: argv.chainRpc,
-        chainLocalApi: argv.chainLocalApi,
-        chainLocalRpc: argv.chainLocalRpc
+        confPath: argv.confPath,
     };
 
     const hermesEnv = convertToEnv(config);
-    console.log("hermesEnv path ", consts.hermes_env);
     fs.writeFileSync(consts.hermes_env, hermesEnv)
 }
 
@@ -44,11 +43,11 @@ function writeEthConfig(argv: any) {
         ethHost: argv.host,
         ethInboundStateSender: argv.inboundStateSender,
         ethRouterContract: argv.routerContract,
+        ethAccPass: consts.hermes_account_password,
     }
 
     const ethEnv = convertToEnv(config);
     // append to the existing file
-    console.log("ethEnv path ", consts.hermes_env);
     fs.appendFileSync(consts.hermes_env, '\n' + ethEnv)
 }
 
@@ -57,12 +56,41 @@ function writeDojimaConfig(argv: any) {
         dojimaChainId: argv.dojimaChainId,
         dojimaGrpcUrl: argv.dojimaGrpcUrl,
         dojimaRpcUrl: argv.dojimaRpcUrl,
+        dojimaSpanEnable: argv.dojimaSpanEnable,
+        dojimaSpanPollInterval: argv.dojimaSpanPollInterval,
     }
 
     const dojimaEnv = convertToEnv(config);
     // append to the existing file
-    console.log("dojimaEnv path ", consts.hermes_env);
     fs.appendFileSync(consts.hermes_env, '\n' + dojimaEnv)
+}
+
+function writeNaradaConfig(argv: any) {
+    let preparam = "";
+    if (argv.preparam === "") {
+        preparam = fs.readFileSync(consts.preparam_path, 'utf8');
+    }
+
+    const config: NaradaConfig = {
+        chainApi: argv.chainApi,
+        chainRpc: argv.chainRpc,
+        eddsaHost: argv.eddsaHost,
+        blockScannerBackoff: argv.blockScannerBackoff,
+        includeEthChain: argv.includeEthChain,
+        includeDojChain: argv.includeDojChain,
+        includeAvaxChain: argv.includeAvaxChain,
+        includeBinanceChain: argv.includeBinanceChain,
+        includeBtcChain: argv.includeBtcChain,
+        includeArChain: argv.includeArChain,
+        includeDotChain: argv.includeDotChain,
+        includeSolChain: argv.includeSolChain,
+        includeGaiaChain: argv.includeGaiaChain,
+        signerSeedPhrase: argv.signerSeedPhrase,
+        preparam: preparam,
+    }
+
+    const naradaEnv = convertToEnv(config);
+    fs.appendFileSync(consts.hermes_env, naradaEnv);
 }
 
 export const writeHermesEnvCommand = {
@@ -83,10 +111,10 @@ export const writeHermesEnvCommand = {
         solPubkey: { string: true, default: "" },
         solProgram: { string: true, default: "" },
         sprintDuration: { number: true, default: 16 },
+        chainHomeFolder: { string: true, default: "/root/.hermesnode" },
         chainId: { string: true, default: "hermeschain" },
         chainRpc: { string: true, default: "hermesnode:26657" },
-        chainLocalApi: { string: true, default: "127.0.0.1:1317" },
-        chainLocalRpc: { string: true, default: "127.0.0.1:26657" },
+        confPath: { string: true, default: "/scripts/" },
     },
     handler: async (argv: any) => {
         await writeHermesEnv(argv);
@@ -101,6 +129,7 @@ export const writeEthEnvCommand = {
         host: { string: true, default: "http://geth:9545" },
         inboundStateSender: { string: true, default: "" },
         routerContract: { string: true, default: "" },
+        ethAccPass: { string: true, default: consts.hermes_account_password },
     },
     handler: async (argv: any) => {
         await writeEthConfig(argv);
@@ -109,14 +138,41 @@ export const writeEthEnvCommand = {
 
 export const writeDojimaEnvCommand = {
     command: "write-dojima-env",
-    describe: "writes dojima env file",
+    describe: "sets dojima environment variable in hermes env file",
     builder: {
         dojimaChainId: { number: true, default: 184 },
         dojimaGrpcUrl: { string: true, default: "hermesnode:9090" },
         dojimaRpcUrl: { string: true, default: "http://dojima-chain:8545" },
+        dojimaSpanEnable: { boolean: true, default: false },
+        dojimaSpanPollInterval: { string: true, default: "1s" },
     },
     handler: async (argv: any) => {
         await writeDojimaConfig(argv);
+    },
+};
+
+export const writeNaradaEnvCommand = {
+    command: "write-narada-env",
+    describe: "set narada related environment variable in hermes env file",
+    builder: {
+        chainApi: { string: true, default: "hermesnode:1317" },
+        chainRpc: { string: true, default: "hermesnode:26657" },
+        eddsaHost: { string: true, default: "narada-eddsa:6049" },
+        blockScannerBackoff: { string: true, default: "5s" },
+        includeEthChain: { boolean: true, default: false },
+        includeDojChain: { boolean: true, default: false },
+        includeAvaxChain: { boolean: true, default: false },
+        includeBinanceChain: { boolean: true, default: false },
+        includeBtcChain: { boolean: true, default: false },
+        includeArChain: { boolean: true, default: false },
+        includeDotChain: { boolean: true, default: false },
+        includeSolChain: { boolean: true, default: false },
+        includeGaiaChain: { boolean: true, default: false },
+        signerSeedPhrase: { string: true, default: "" },
+        preparam: { string: true, default: "" },
+    },
+    handler: async (argv: any) => {
+        await writeNaradaConfig(argv);
     },
 };
 

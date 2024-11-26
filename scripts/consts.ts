@@ -12,8 +12,8 @@ export const dojima_keystore_path = "/home/user/dojima-keystore";
 export const dojima_passphrase = "password";
 export const dojima_config_path = "/dojima-config";
 
-export const hermes_data = "/home/user/hermes-data";
 export const hermes_env = path.join(__dirname, "../config", ".hermes.env");
+export const preparam_path = path.join(__dirname, "../config", "preparam.txt");
 export const hermes_account_name = "hermesnode";
 export const hermes_account_password = "password";
 

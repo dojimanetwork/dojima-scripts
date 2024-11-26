@@ -1,6 +1,7 @@
-version: '3.8'
+version: '3.9'
 
 name: dojima-network
+
 services:
 
   scripts:
@@ -14,6 +15,7 @@ services:
       - "hermes-data:/home/user/hermes-data"
 
   geth:
+    hostname: geth
     image: ethereum/client-go:stable
     ports:
       - "127.0.0.1:9545:9545"
@@ -28,9 +30,10 @@ services:
       - --keystore=/geth-keystore
       - --http
       - --datadir=/geth-data
+      - --http.port=9545
       - --http.addr=0.0.0.0
       - --authrpc.vhosts=*
-      - --authrpc.port=8551
+      - --authrpc.port=9551
       - --authrpc.addr=0.0.0.0
       - --http.vhosts=*
       - --http.api=engine,personal,eth,net,web3
@@ -63,10 +66,6 @@ services:
       - 8550:8550
       - 30303:30303
       - 8548:8548
-    environment:
-      DOJIMA_RPC_URL: http://hermesnode:1317
-      DOJIMA_GRPC_URL: hermesnode:9090
-      NET: testnet
     command: |
       --mine
       --datadir=/dojima-data
@@ -96,15 +95,48 @@ services:
     image: dojimanetwork1401/hermes:8514f6d2_1.0.0
     volumes:
       - "hermes-data:/hermes-data"
+      - "hermesnode:/root/.hermesnode"
     env_file:
       - path: "./config/.hermes.env"
         required: false
     ports:
       - 26657:26657
       - 26656:26656
-      - 1317:1317
+      - 127.0.0.1:1317:1317
       - 6060:6060
       - 9090:9090
+    entrypoint: /scripts/genesis.sh
+    command:
+      - hermesnode
+      - start
+      - --log_level
+      - info
+      - --log_format
+      - plain
+      - --rpc.laddr
+      - tcp://0.0.0.0:26657
+      - --p2p.laddr
+      - tcp://0.0.0.0:26656
+      - --consensus.create_empty_blocks
+      - "false"
+
+  narada:
+    hostname: narada
+    image: dojimanetwork1401/hermes:8514f6d2_1.0.0
+    ports:
+      - 5040:5040
+      - 6040:6040
+      - 9000:9000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "narada:/etc/narada"
+      - "hermes-data:/hermes-data"
+      - "hermesnode:/root/.hermesnode"
+    env_file:
+      - path: "./config/.hermes.env"
+        required: false
+    command: [ "scripts/narada.sh", "narada", "-c", "/etc/narada/config.json", "-p" ]
 
 volumes:
   geth-data:
@@ -113,4 +145,6 @@ volumes:
   dojima-keystore:
   dojima-config:
   dojima-data:
+  hermesnode:
   hermes-data:
+  narada:
