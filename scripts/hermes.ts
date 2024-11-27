@@ -26,7 +26,7 @@ async function writeHermesEnv(argv: any) {
         solPubkey: argv.solPubkey,
         solProgram: argv.solProgram,
         keyPassphrase: consts.hermes_account_password,
-        signerSeedPhrase: consts.dojima_hermes_account_seed_phrase,
+        signerSeedPhrase: consts.dojima_hermes_mnemonic,
         sprintDuration: argv.sprintDuration,
         chainHomeFolder: argv.chainHomeFolder,
         chainId: argv.chainId,

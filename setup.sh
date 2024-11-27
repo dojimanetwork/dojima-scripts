@@ -30,6 +30,8 @@ run_geth=true
 run_dojima=true
 run_hermes=true
 run_narada=true
+create_doj_pool=true
+create_eth_pool=true
 dojima_chain_id=184
 geth_chain_id=1337
 l2chain=false
@@ -86,18 +88,24 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-dojima)
             run_dojima=false
+            create_doj_pool=false
             shift
             ;;
         --no-geth)
             run_geth=false
+            create_eth_pool=false
             shift
             ;;
         --no-hermes)
             run_hermes=false
+            create_doj_pool=false
+            create_eth_pool=false
             shift
             ;;
         --no-narada)
             run_narada=false
+            create_doj_pool=false
+            create_eth_pool=false
             shift
             ;;
         --l2chain)
@@ -226,7 +234,6 @@ if $force_init; then
     fi
 
     if $run_narada; then
-        # create a variable to add flags to the narada command
         narada_flags=""
         if $run_dojima; then
             narada_flags="$narada_flags --includeDojChain"
@@ -241,5 +248,10 @@ if $force_init; then
 
         echo == Starting narada
         docker compose up --wait narada
+    fi
+
+    if $create_doj_pool; then
+        echo == Creating DOJ pool
+        docker compose run scripts create-doj-pool
     fi
 fi
