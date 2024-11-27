@@ -29,6 +29,7 @@ run=true
 run_geth=true
 run_dojima=true
 run_hermes=true
+run_narada=true
 dojima_chain_id=184
 geth_chain_id=1337
 l2chain=false
@@ -36,6 +37,8 @@ devprivkey=cbaf637f5b8c41deaf84f031db1a6230e7e831f3be79c4ed802f0f031d7ace4f
 dojima_explorer=false
 simple=true
 
+inbound_state_sender=""
+span_enable=true
 
 build_node_images=false
 
@@ -48,6 +51,17 @@ geth_data_path="/geth-data"
 dojima_config_path="/dojima-config"
 dojima_keystore_path="/dojima-keystore"
 dojima_data_path="/dojima-data"
+
+# hermes paths
+hermes_data="/hermes-data"
+hermes_env="./config/.hermes.env"
+
+generate_env() {
+    cd scripts
+    node index.js "$@"
+    cd ..
+}
+
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -80,6 +94,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-hermes)
             run_hermes=false
+            shift
+            ;;
+        --no-narada)
+            run_narada=false
             shift
             ;;
         --l2chain)
@@ -146,6 +164,12 @@ if $force_init; then
         docker volume rm $leftoverVolumes
     fi
 
+    # remove the config/.hermes.env file if it exists
+    if [ -f $hermes_env ]; then
+        echo == Removing old hermes env file
+        rm $hermes_env
+    fi
+
     if $run_geth; then
         echo == Generating geth keys
         docker compose run scripts write-geth-accounts
@@ -168,6 +192,7 @@ if $force_init; then
         echo == Generating dojima keys
         docker compose run scripts write-dojima-account
 
+        # Creating volume for dojima chain
         docker compose run --entrypoint sh dojimachain -c "echo password > $dojima_data_path/passphrase"
         docker compose run --entrypoint sh dojimachain -c "chown -R 1000:1000 $dojima_keystore_path"
         docker compose run --entrypoint sh dojimachain -c "chown -R 1000:1000 $dojima_config_path"
@@ -180,5 +205,41 @@ if $force_init; then
 
         echo == Starting dojima
         docker compose up --wait dojimachain
+    fi
+
+    if $run_hermes; then
+        echo == Generate hermes env
+        generate_env write-hermes-env
+
+        echo == Generate dojima env
+        generate_env write-dojima-env --dojimaSpanEnable=$span_enable
+
+        if $run_geth; then
+            echo == Generate ethereum env
+            generate_env write-eth-env --inboundStateSender="0xde2Ea339EBB87acFd621987D008c49947961D3cc"
+        fi
+
+        echo == Starting hermes
+        docker compose up --wait hermes
+
+        sleep 10
+    fi
+
+    if $run_narada; then
+        # create a variable to add flags to the narada command
+        narada_flags=""
+        if $run_dojima; then
+            narada_flags="$narada_flags --includeDojChain"
+        fi
+
+        if $run_geth; then
+            narada_flags="$narada_flags --includeEthChain"
+        fi
+
+        echo == Generate narada env
+        generate_env write-narada-env $narada_flags
+
+        echo == Starting narada
+        docker compose up --wait narada
     fi
 fi
