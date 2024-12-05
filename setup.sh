@@ -252,6 +252,6 @@ if $force_init; then
 
     if $create_doj_pool; then
         echo == Creating DOJ pool
-        docker compose run scripts create-doj-pool
+        docker compose run scripts create-doj-pool --dojAmount 10 --hermesAmount 10
     fi
 fi
