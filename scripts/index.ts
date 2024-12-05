@@ -4,9 +4,7 @@ import Yargs from "yargs/yargs";
 import { writeGethAccountsCommand, writeDojimaAccountCommand } from "./account";
 import { writeGethConfigCommand, writeDojimaConfigCommand } from "./config";
 import { writeHermesEnvCommand, writeEthEnvCommand, writeDojimaEnvCommand, writeNaradaEnvCommand } from "./hermes";
-import { createDOJPoolCommand } from "./pools";
-import { createOperatorCommand } from "./operator";
-import { registerChainCommand } from "./chainlist";
+import { createDOJPoolCommand, createETHPoolCommand } from "./pools";
 async function main() {
     await Yargs(hideBin(process.argv))
         .options({
@@ -25,6 +23,7 @@ async function main() {
         .command(writeDojimaEnvCommand)
         .command(writeNaradaEnvCommand)
         .command(createDOJPoolCommand)
+        .command(createETHPoolCommand)
         .demandCommand()
         .strict()
         .help()
