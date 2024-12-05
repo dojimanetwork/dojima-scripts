@@ -27,14 +27,14 @@ async function writeDojimaAccount() {
 
 function getDojimaAccount(): ethers.Wallet {
     return ethers.Wallet.fromMnemonic(
-        consts.dojima_hermes_account_seed_phrase,
+        consts.dojima_hermes_mnemonic,
         "m/44'/184'/0'/0/0"
     );
 }
 
 function specialAccount(index: number): ethers.Wallet {
     return ethers.Wallet.fromMnemonic(
-        consts.l1mnemonic,
+        consts.geth_mnemonic,
         "m/44'/60'/0'/0/" + index
     );
 }
