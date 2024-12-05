@@ -35,7 +35,11 @@ async function writeHermesEnv(argv: any) {
     };
 
     const hermesEnv = convertToEnv(config);
-    fs.writeFileSync(consts.hermes_env, hermesEnv)
+    if (fs.existsSync(consts.hermes_env)) {
+        fs.appendFileSync(consts.hermes_env, '\n' + hermesEnv)
+    } else {
+        fs.writeFileSync(consts.hermes_env, hermesEnv)
+    }
 }
 
 function writeEthConfig(argv: any) {
@@ -48,11 +52,16 @@ function writeEthConfig(argv: any) {
 
     const ethEnv = convertToEnv(config);
     // append to the existing file
-    fs.appendFileSync(consts.hermes_env, '\n' + ethEnv)
+    if (fs.existsSync(consts.hermes_env)) {
+        fs.appendFileSync(consts.hermes_env, '\n' + ethEnv)
+    } else {
+        fs.writeFileSync(consts.hermes_env, ethEnv)
+    }
 }
 
 function writeDojimaConfig(argv: any) {
     const config: DojimaConfig = {
+        dojHost: argv.dojimaRpcUrl,
         dojimaChainId: argv.dojimaChainId,
         dojimaGrpcUrl: argv.dojimaGrpcUrl,
         dojimaRpcUrl: argv.dojimaRpcUrl,
@@ -61,8 +70,12 @@ function writeDojimaConfig(argv: any) {
     }
 
     const dojimaEnv = convertToEnv(config);
-    // append to the existing file
-    fs.appendFileSync(consts.hermes_env, '\n' + dojimaEnv)
+    // if hermes env file exists, append to it
+    if (fs.existsSync(consts.hermes_env)) {
+        fs.appendFileSync(consts.hermes_env, '\n' + dojimaEnv)
+    } else {
+        fs.writeFileSync(consts.hermes_env, dojimaEnv)
+    }
 }
 
 function writeNaradaConfig(argv: any) {
@@ -85,12 +98,15 @@ function writeNaradaConfig(argv: any) {
         includeDotChain: argv.includeDotChain,
         includeSolChain: argv.includeSolChain,
         includeGaiaChain: argv.includeGaiaChain,
-        signerSeedPhrase: argv.signerSeedPhrase,
         preparam: preparam,
     }
 
     const naradaEnv = convertToEnv(config);
-    fs.appendFileSync(consts.hermes_env, naradaEnv);
+    if (fs.existsSync(consts.hermes_env)) {
+        fs.appendFileSync(consts.hermes_env, '\n' + naradaEnv);
+    } else {
+        fs.writeFileSync(consts.hermes_env, naradaEnv);
+    }
 }
 
 export const writeHermesEnvCommand = {
@@ -142,7 +158,7 @@ export const writeDojimaEnvCommand = {
     builder: {
         dojimaChainId: { number: true, default: 184 },
         dojimaGrpcUrl: { string: true, default: "hermesnode:9090" },
-        dojimaRpcUrl: { string: true, default: "http://dojima-chain:8545" },
+        dojimaRpcUrl: { string: true, default: "http://dojima-chain:8549" },
         dojimaSpanEnable: { boolean: true, default: false },
         dojimaSpanPollInterval: { string: true, default: "1s" },
     },
@@ -168,7 +184,6 @@ export const writeNaradaEnvCommand = {
         includeDotChain: { boolean: true, default: false },
         includeSolChain: { boolean: true, default: false },
         includeGaiaChain: { boolean: true, default: false },
-        signerSeedPhrase: { string: true, default: "" },
         preparam: { string: true, default: "" },
     },
     handler: async (argv: any) => {

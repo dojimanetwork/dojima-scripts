@@ -19,6 +19,7 @@ export const hermes_account_password = "password";
 
 // Not secure. Do not use for production purposes
 export const dojima_hermes_mnemonic = "message nut rain immune rifle fall legend floor cradle spin season sting couch age swap seminar melt cable life battle island impose cradle brass";
+export const dojima_private_key = "0xcbaf637f5b8c41deaf84f031db1a6230e7e831f3be79c4ed802f0f031d7ace4f";
 
 export const dojima_genesis_testnet = `
     {

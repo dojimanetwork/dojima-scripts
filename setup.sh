@@ -58,9 +58,31 @@ dojima_data_path="/dojima-data"
 hermes_data="/hermes-data"
 hermes_env="./config/.hermes.env"
 
-generate_env() {
+generate_env_file() {
     cd scripts
-    node index.js "$@"
+    echo == Generate hermes env
+    node index.js write-hermes-env
+
+    echo == Generate dojima env
+    node index.js write-dojima-env --dojimaSpanEnable=$span_enable
+
+    echo == Generate ethereum env
+    node index.js write-eth-env --inboundStateSender="0xde2Ea339EBB87acFd621987D008c49947961D3cc"
+
+    if $run_narada; then
+        narada_flags=""
+        if $run_dojima; then
+            narada_flags="$narada_flags --includeDojChain"
+        fi
+
+        if $run_geth; then
+            narada_flags="$narada_flags --includeEthChain"
+        fi
+
+        echo == Generate narada env
+        node index.js write-narada-env $narada_flags
+    fi
+
     cd ..
 }
 
@@ -196,6 +218,16 @@ if $force_init; then
         docker compose up --wait geth
     fi
 
+    # Generate the env file
+    generate_env_file
+
+    if $run_hermes; then
+        echo == Starting hermes
+        docker compose up --wait hermes
+
+        sleep 10
+    fi
+
     if $run_dojima; then
         echo == Generating dojima keys
         docker compose run scripts write-dojima-account
@@ -215,43 +247,17 @@ if $force_init; then
         docker compose up --wait dojimachain
     fi
 
-    if $run_hermes; then
-        echo == Generate hermes env
-        generate_env write-hermes-env
-
-        echo == Generate dojima env
-        generate_env write-dojima-env --dojimaSpanEnable=$span_enable
-
-        if $run_geth; then
-            echo == Generate ethereum env
-            generate_env write-eth-env --inboundStateSender="0xde2Ea339EBB87acFd621987D008c49947961D3cc"
-        fi
-
-        echo == Starting hermes
-        docker compose up --wait hermes
-
-        sleep 10
-    fi
-
     if $run_narada; then
-        narada_flags=""
-        if $run_dojima; then
-            narada_flags="$narada_flags --includeDojChain"
-        fi
-
-        if $run_geth; then
-            narada_flags="$narada_flags --includeEthChain"
-        fi
-
-        echo == Generate narada env
-        generate_env write-narada-env $narada_flags
-
         echo == Starting narada
         docker compose up --wait narada
+
+        echo == Waiting for narada to start
+        sleep 50
+
+        if $create_doj_pool; then
+            echo == Creating DOJ pool
+            docker compose run scripts create-doj-pool --dojAmount 10 --hermesAmount 10
+        fi
     fi
 
-    if $create_doj_pool; then
-        echo == Creating DOJ pool
-        docker compose run scripts create-doj-pool --dojAmount 10 --hermesAmount 10
-    fi
 fi

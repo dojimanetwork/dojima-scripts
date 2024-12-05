@@ -66,6 +66,9 @@ services:
       - 8550:8550
       - 30303:30303
       - 8548:8548
+    env_file:
+      - path: "./config/.hermes.env"
+        required: false
     command: |
       --mine
       --datadir=/dojima-data
@@ -78,7 +81,7 @@ services:
       --http.api=personal,db,eth,net,web3,txpool,miner,admin,dojimachain
       --http.addr=0.0.0.0
       --port=30303
-      --http.port=8545
+      --http.port=8549
       --http.corsdomain="*"
       --http.vhosts=*
       --ws
@@ -136,7 +139,7 @@ services:
     env_file:
       - path: "./config/.hermes.env"
         required: false
-    command: [ "scripts/narada.sh", "narada", "-c", "/etc/narada/config.json", "-p" ]
+    command: [ "scripts/narada.sh", "narada", "-c", "/etc/narada/config.json", "-p", "-l", "debug" ]
 
 volumes:
   geth-data:

@@ -14,10 +14,12 @@ async function createDOJPool(dojClient: DojimaInit, hermesClient: HermesInit, do
     const hermesAddress = hermesClient.h4sConnect.getAddress();
     console.log("H4S address :: ", hermesAddress);
     const bal = await hermesClient.h4sConnect.getBalance(hermesAddress, [AssetDOJNative]);
+    console.log("H4S Balance :: ", bal);
     const h4sBalance = baseToAsset(bal[0].amount).amount().toNumber();
     console.log("H4S Balance :: ", h4sBalance);
 
     if (dojBalance > dojAmount && h4sBalance > hermesAmount) {
+        console.log("Creating DOJ pool", hermesClient.h4sConnect.getClientUrl().node);
         const dojInboundAddress = await dojClient.dojConnect.getDojimaInboundAddress(hermesClient.h4sConnect.getClientUrl().node);
         console.log("DOJ Inbound Address :: ", dojInboundAddress);
 
@@ -85,6 +87,12 @@ export const createDOJPoolCommand = {
             string: true,
             default: consts.dojima_hermes_mnemonic,
         },
+        dojPrivateKey: {
+            demandOption: true,
+            describe: "DOJ private key",
+            string: true,
+            default: consts.dojima_private_key,
+        },
         hermesAmount: {
             demandOption: true,
             describe: "Hermes amount",
@@ -96,19 +104,26 @@ export const createDOJPoolCommand = {
             string: true,
             default: consts.dojima_hermes_mnemonic,
         },
+        network: {
+            demandOption: true,
+            describe: "Network",
+            string: true,
+            default: Network.Testnet,
+        },
     },
     handler: async (argv: any) => {
         const dojClient = new DojimaInit(
-            argv.dojPhrase,
-            Network.Testnet,
+            "",
+            argv.dojPrivateKey,
+            argv.network,
             argv.dojimaRpcUrl
         );
 
         const hermesClient = new HermesInit(
             argv.hermesPhrase,
-            Network.Testnet,
-            argv.hermesRpcUrl,
-            argv.hermesApiUrl
+            argv.network,
+            argv.hermesApiUrl,
+            argv.hermesRpcUrl
         );
 
         await createDOJPool(dojClient, hermesClient, argv.dojAmount, argv.hermesAmount);
@@ -141,17 +156,24 @@ export const createETHPoolCommand = {
             string: true,
             default: consts.dojima_hermes_mnemonic,
         },
+        network: {
+            demandOption: true,
+            describe: "Network",
+            string: true,
+            default: Network.Testnet,
+        },
     },
     handler: async (argv: any) => {
         const ethClient = new EthereumInit(
             argv.ethPhrase,
-            Network.Testnet,
+            "",
+            argv.network,
             argv.ethRpcUrl
         );
 
         const hermesClient = new HermesInit(
             argv.hermesPhrase,
-            Network.Testnet,
+            argv.network,
             argv.hermesRpcUrl,
             argv.hermesApiUrl
         );

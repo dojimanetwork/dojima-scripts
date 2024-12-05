@@ -5,14 +5,16 @@ import { writeGethAccountsCommand, writeDojimaAccountCommand } from "./account";
 import { writeGethConfigCommand, writeDojimaConfigCommand } from "./config";
 import { writeHermesEnvCommand, writeEthEnvCommand, writeDojimaEnvCommand, writeNaradaEnvCommand } from "./hermes";
 import { createDOJPoolCommand } from "./pools";
+import { createOperatorCommand } from "./operator";
+import { registerChainCommand } from "./chainlist";
 async function main() {
     await Yargs(hideBin(process.argv))
         .options({
-            dojimaRpcUrl: { string: true, default: "http://dojima-chain:8545" },
-            hermesApiUrl: { string: true, default: "http://hermesnode:1317" },
-            hermesRpcUrl: { string: true, default: "http://hermesnode:26657" },
-            ethUrl: { string: true, default: "http://geth:8549" },
-            l2Url: { string: true, default: "ws://l2node:8548" },
+            dojimaRpcUrl: { string: true, default: "http://localhost:8549" },
+            hermesApiUrl: { string: true, default: "http://localhost:1317" },
+            hermesRpcUrl: { string: true, default: "http://localhost:26657" },
+            ethUrl: { string: true, default: "http://localhost:9545" },
+            l2Url: { string: true, default: "ws://localhost:8548" },
         })
         .command(writeGethAccountsCommand)
         .command(writeDojimaAccountCommand)
