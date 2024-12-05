@@ -5,6 +5,8 @@ import { writeGethAccountsCommand, writeDojimaAccountCommand } from "./account";
 import { writeGethConfigCommand, writeDojimaConfigCommand } from "./config";
 import { writeHermesEnvCommand, writeEthEnvCommand, writeDojimaEnvCommand, writeNaradaEnvCommand } from "./hermes";
 import { createDOJPoolCommand, createETHPoolCommand } from "./pools";
+import { createOperatorCommand } from "./operator";
+import { registerChainCommand } from "./chainlist";
 async function main() {
     await Yargs(hideBin(process.argv))
         .options({
@@ -24,6 +26,8 @@ async function main() {
         .command(writeNaradaEnvCommand)
         .command(createDOJPoolCommand)
         .command(createETHPoolCommand)
+        .command(createOperatorCommand)
+        .command(registerChainCommand)
         .demandCommand()
         .strict()
         .help()
