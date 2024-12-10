@@ -6,6 +6,9 @@
   "author": "Dojima Labs",
   "license": "ISC",
   "dependencies": {
+    "@dojima-wallet/connection": "^0.0.1-alpha.83",
+    "@dojima-wallet/types": "^0.0.1-alpha.8",
+    "@dojima-wallet/utils": "0.0.1-alpha.8",
     "@types/node": "^22.9.1",
     "@types/yargs": "^17.0.10",
     "ethers": "^5.6.1",
@@ -15,6 +18,8 @@
   },
   "private": true,
   "scripts": {
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "create-doj-pool": "ts-node index.ts create-doj-pool --dojAmount 10 --hermesAmount 10",
+    "regiser-chain": "ts-node index.ts  register-chain --chainId 1001 --chainTicker ETH"
   }
 }

@@ -32,6 +32,7 @@ export interface EthConfig {
 }
 
 export interface DojimaConfig {
+    dojHost: string; // TODO: remove this from narada.sh first
     dojimaChainId: number;
     dojimaGrpcUrl: string;
     dojimaRpcUrl: string;
@@ -53,6 +54,5 @@ export interface NaradaConfig {
     includeDotChain: boolean;
     includeSolChain: boolean;
     includeGaiaChain: boolean;
-    signerSeedPhrase: string;
     preparam: string;
 }

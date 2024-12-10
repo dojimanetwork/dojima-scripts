@@ -5,7 +5,7 @@ export const geth_passphrase = "passphrase";
 
 export const geth_config_path = "/geth-config";
 // Not secure. Do not use for production purposes
-export const l1mnemonic =
+export const geth_mnemonic =
     "indoor dish desk flag debris potato excuse depart ticket judge file exit";
 
 export const dojima_keystore_path = "/home/user/dojima-keystore";
@@ -18,9 +18,8 @@ export const hermes_account_name = "hermesnode";
 export const hermes_account_password = "password";
 
 // Not secure. Do not use for production purposes
-export const dojima_hermes_account_seed_phrase = "message nut rain immune rifle fall legend floor cradle spin season sting couch age swap seminar melt cable life battle island impose cradle brass";
-
-export const dojimamnemonic = "";
+export const dojima_hermes_mnemonic = "message nut rain immune rifle fall legend floor cradle spin season sting couch age swap seminar melt cable life battle island impose cradle brass";
+export const dojima_private_key = "0xcbaf637f5b8c41deaf84f031db1a6230e7e831f3be79c4ed802f0f031d7ace4f";
 
 export const dojima_genesis_testnet = `
     {
