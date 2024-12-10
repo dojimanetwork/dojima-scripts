@@ -7,6 +7,7 @@ import { writeHermesEnvCommand, writeEthEnvCommand, writeDojimaEnvCommand, write
 import { createDOJPoolCommand, createETHPoolCommand } from "./pools";
 import { createOperatorCommand } from "./operator";
 import { registerChainCommand } from "./chainlist";
+
 async function main() {
     await Yargs(hideBin(process.argv))
         .options({
