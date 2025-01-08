@@ -30,6 +30,8 @@ run_geth=true
 run_dojima=true
 run_hermes=true
 run_narada=true
+run_operator_gateway=true
+run_crawler=true
 create_doj_pool=true
 create_eth_pool=true
 dojima_chain_id=184
@@ -142,6 +144,14 @@ while [[ $# -gt 0 ]]; do
             simple=true
             shift
             ;;
+        --no-operator-gateway)
+            run_operator_gateway=false
+            shift
+            ;;
+        --no-crawler)
+            run_crawler=false
+            shift
+            ;;
         *)
             echo Usage: $0 \[OPTIONS..]
             echo        $0 script [SCRIPT-ARGS]
@@ -155,6 +165,8 @@ while [[ $# -gt 0 ]]; do
             echo --l2chain     Run the L2 chain
             echo --dojima-explorer  Run the dojima explorer
             echo --simple         Run a simple network with dojima chain, hermes and ethere
+            echo --no-operator-gateway  Do not run the operator gateway
+            echo --no-crawler     Do not run the crawler
             echo script runs inside a separate docker. For SCRIPT-ARGS, run $0 script --help
             exit 0
     esac
@@ -247,17 +259,38 @@ if $force_init; then
         docker compose up --wait dojimachain
     fi
 
-    if $run_narada; then
-        echo == Starting narada
-        docker compose up --wait narada
+    if $run_operator_gateway; then
+        echo == Craete operator
+        docker compose run scripts create-operator --serverUrl "localhost:8080" --stakeAmount 10000
 
-        echo == Waiting for narada to start
-        sleep 50
+        echo == Registering ETH chain
+        docker compose run scripts register-chain --chainId 1003 --chainTicker ETH
+
+        echo == Create Endpoint
+        docker compose run scripts create-endpoint --chainId 1003 --chainTicker ETH --rpcUrl "http://geth:9545" --wsUrl "ws://geth:9545"
+
+        echo == Starting operator gateway nginx
+        docker compose up --wait operator-gateway-nginx
+
+        echo == Starting operator gateway
+        docker compose up --wait operator-gateway
+
+        if $run_crawler; then
+            echo == Starting crawler
+            docker compose up --wait crawler
+        fi
+
+        if $run_narada; then
+            echo == Starting narada
+            docker compose up --wait narada
+
+            echo == Waiting for narada to start
+            sleep 50
+        fi
 
         if $create_doj_pool; then
             echo == Creating DOJ pool
             docker compose run scripts create-doj-pool --dojAmount 10 --hermesAmount 10
         fi
     fi
-
 fi
