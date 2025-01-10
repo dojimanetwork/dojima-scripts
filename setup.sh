@@ -93,6 +93,71 @@ generate_env_file() {
     cd ..
 }
 
+create_operator() {
+    echo == Setting up operator and crawler
+
+   while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            --serverUrl) serverUrl="$2"; shift ;;
+            --stakeAmount) stakeAmount="$2"; shift ;;
+            *) echo "Unknown parameter: $1"; return 1 ;;
+        esac
+        shift
+    done
+
+    echo == Creating operator
+    docker compose run scripts create-operator --serverUrl "$serverUrl" --stakeAmount "$stakeAmount"
+}
+
+run_chain_setup() {
+    local chainId=""
+    local chainTicker=""
+    local rpcUrl=""
+    local wsUrl=""
+    local serverUrl="host.docker.internal:1219"  # Default value
+    local stakeAmount=10000                       # Default value
+
+    # Parse named parameters
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
+            --chainId) chainId="$2"; shift ;;
+            --chainTicker) chainTicker="$2"; shift ;;
+            --rpcUrl) rpcUrl="$2"; shift ;;
+            --wsUrl) wsUrl="$2"; shift ;;
+            --serverUrl) serverUrl="$2"; shift ;;
+            --stakeAmount) stakeAmount="$2"; shift ;;
+            *) echo "Unknown parameter: $1"; return 1 ;;
+        esac
+        shift
+    done
+
+    # Validate required parameters
+    if [[ -z "$chainId" || -z "$chainTicker" ]]; then
+        echo "Error: --chainId and --chainTicker are required."
+        return 1
+    fi
+
+    # Setup operator gateway and crawler
+    echo == Creating operator
+    docker compose run scripts create-operator --serverUrl "$serverUrl" --stakeAmount "$stakeAmount"
+
+    sleep 5
+    echo == Registering chain data
+    docker compose run scripts register-chain --chainId "$chainId" --chainTicker "$chainTicker"
+
+    sleep 5
+    echo == Creating endpoint
+    docker compose run scripts create-endpoint --chainId "$chainId" --chainTicker "$chainTicker" --rpcUrl "$rpcUrl" --wsUrl "$wsUrl"
+
+    echo == Starting operator gateway nginx
+    docker compose up --wait operator-gateway-nginx
+
+    echo == Starting operator gateway
+    docker compose up --wait operator-gateway
+
+    echo "Register Client"
+    docker compose run scripts register-client --chainId "$chainId" --chainTicker "$chainTicker" --rpcUrl "$rpcUrl" --wsUrl "$wsUrl"
+}
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -270,29 +335,17 @@ if $force_init; then
     fi
 
     if $run_operator_gateway; then
-        echo == Craete operator
-        docker compose run scripts create-operator --serverUrl "host.docker.internal:1219" --stakeAmount 10000
+        if $run_geth; then
+            run_chain_setup --chainId 1002 --chainTicker ETH --rpcUrl "http://host.docker.internal:9545" --wsUrl "ws://geth:9545" --serverUrl "host.docker.internal:1219" --stakeAmount 10000
+        fi
+        if $run_dojima; then
+            run_chain_setup --chainId 1002 --chainTicker DOJ --rpcUrl "http://host.docker.internal:9545" --wsUrl "ws://dojimachain:9545" --serverUrl "host.docker.internal:1219" --stakeAmount 10000
+        fi
 
-        echo == Registering ETH chain
-        docker compose run scripts register-chain --chainId 1002 --chainTicker ETH
-
-        echo == Create Endpoint
-        docker compose run scripts create-endpoint --chainId 1002 --chainTicker ETH --rpcUrl "http://geth:9545" --wsUrl "ws://geth:9545"
-
-        echo == Starting operator gateway nginx
-        docker compose up --wait operator-gateway-nginx
-
-        echo == Starting operator gateway
-        docker compose up --wait operator-gateway
-
-        echo "Register Client"
-        docker compose run scripts register-client --chainTicker ETH --rpcUrl "http://geth:9545" --wsUrl "ws://geth:9545"
-        
         if $run_crawler; then
             echo == Starting crawler
             docker compose up --wait crawler
         fi
-
 
         if $run_narada; then
             echo == Starting narada

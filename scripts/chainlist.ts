@@ -2,7 +2,6 @@ import { HermesInit, ComputeUnits, OperatorInit } from "@dojima-wallet/connectio
 import { Network } from "@dojima-wallet/types";
 import { Chain, ChainTicker, isEnabledChain, tickerToChain } from "@dojima-wallet/utils";
 import * as consts from "./consts";
-import { noop } from "@dojima-wallet/connection/dist/lib/operator-gateway/client";
 import { AddChainClientParam } from "@dojima-wallet/connection/dist/lib/operator-gateway/types";
 
 async function registerChain(hermesClient: HermesInit, chainId: number, chainTicker: ChainTicker, blkUnits: number, txUnits: number) {
@@ -148,7 +147,7 @@ export const createEndpointCommand = {
     },
 };
 
-async function registerClient(operatorClient: OperatorInit, chainTicker: ChainTicker, rpcUrl: string, wsUrl: string) {
+async function registerClient(operatorClient: OperatorInit, chainId: number, chainTicker: ChainTicker, rpcUrl: string, wsUrl: string) {
     if (!isEnabledChain(chainTicker)) {
         throw new Error("Invalid chain ticker");
     }
@@ -156,7 +155,12 @@ async function registerClient(operatorClient: OperatorInit, chainTicker: ChainTi
     const chainData = tickerToChain(chainTicker);
 
     const params: AddChainClientParam = {
-        chain: chainData,
+        chain: {
+            name: chainData.name,
+            token: chainData.token,
+            ticker: chainData.ticker,
+            chainId: chainId.toString(),
+        },
         rpcUrl,
         wsUrl,
     };
@@ -179,6 +183,11 @@ export const registerClientCommand = {
             describe: "Chain ticker",
             string: true,
         },
+        chainId: {
+            demandOption: true,
+            describe: "Chain ID",
+            number: true,
+        },
         rpcUrl: {
             demandOption: true,
             describe: "RPC URL",
@@ -192,6 +201,6 @@ export const registerClientCommand = {
     },
     handler: async (argv: any) => {
         const operatorClient = new OperatorInit(argv.operatorServerUrl);
-        await registerClient(operatorClient, argv.chainTicker, argv.rpcUrl, argv.wsUrl);
+        await registerClient(operatorClient, argv.chainId, argv.chainTicker, argv.rpcUrl, argv.wsUrl);
     },
 };
