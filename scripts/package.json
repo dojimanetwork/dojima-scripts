@@ -6,7 +6,6 @@
   "author": "Dojima Labs",
   "license": "ISC",
   "dependencies": {
-    "@dojima-wallet/connection": "^0.0.1-alpha.93",
     "@dojima-wallet/types": "^0.0.1-alpha.8",
     "@dojima-wallet/utils": "0.0.1-alpha.10",
     "@types/node": "^22.9.1",

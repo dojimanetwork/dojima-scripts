@@ -30,6 +30,7 @@ run_geth=true
 run_dojima=true
 run_hermes=true
 run_narada=true
+run_aa=false
 run_operator_gateway=true
 run_crawler=true
 create_doj_pool=true
@@ -79,6 +80,10 @@ generate_env_file() {
 
         if $run_geth; then
             narada_flags="$narada_flags --includeEthChain"
+        fi
+
+        if $run_aa; then
+            narada_flags="$narada_flags --includeAAChain"
         fi
 
         echo == Generate narada env
@@ -152,6 +157,10 @@ while [[ $# -gt 0 ]]; do
             run_crawler=false
             shift
             ;;
+        --run-arthera)
+            run_aa=true
+            shift
+            ;;
         *)
             echo Usage: $0 \[OPTIONS..]
             echo        $0 script [SCRIPT-ARGS]
@@ -167,6 +176,7 @@ while [[ $# -gt 0 ]]; do
             echo --simple         Run a simple network with dojima chain, hermes and ethere
             echo --no-operator-gateway  Do not run the operator gateway
             echo --no-crawler     Do not run the crawler
+            echo --run-arthera    Run the arthera chain
             echo script runs inside a separate docker. For SCRIPT-ARGS, run $0 script --help
             exit 0
     esac
@@ -261,13 +271,13 @@ if $force_init; then
 
     if $run_operator_gateway; then
         echo == Craete operator
-        docker compose run scripts create-operator --serverUrl "localhost:8080" --stakeAmount 10000
+        docker compose run scripts create-operator --serverUrl "host.docker.internal:1219" --stakeAmount 10000
 
         echo == Registering ETH chain
-        docker compose run scripts register-chain --chainId 1003 --chainTicker ETH
+        docker compose run scripts register-chain --chainId 1002 --chainTicker ETH
 
         echo == Create Endpoint
-        docker compose run scripts create-endpoint --chainId 1003 --chainTicker ETH --rpcUrl "http://geth:9545" --wsUrl "ws://geth:9545"
+        docker compose run scripts create-endpoint --chainId 1002 --chainTicker ETH --rpcUrl "http://geth:9545" --wsUrl "ws://geth:9545"
 
         echo == Starting operator gateway nginx
         docker compose up --wait operator-gateway-nginx
@@ -275,10 +285,14 @@ if $force_init; then
         echo == Starting operator gateway
         docker compose up --wait operator-gateway
 
+        echo "Register Client"
+        docker compose run scripts register-client --chainTicker ETH --rpcUrl "http://geth:9545" --wsUrl "ws://geth:9545"
+        
         if $run_crawler; then
             echo == Starting crawler
             docker compose up --wait crawler
         fi
+
 
         if $run_narada; then
             echo == Starting narada

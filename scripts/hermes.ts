@@ -98,6 +98,7 @@ function writeNaradaConfig(argv: any) {
         includeDotChain: argv.includeDotChain,
         includeSolChain: argv.includeSolChain,
         includeGaiaChain: argv.includeGaiaChain,
+        includeAAChain: argv.includeAAChain,
         preparam: preparam,
     }
 
@@ -142,7 +143,7 @@ export const writeEthEnvCommand = {
     command: "write-eth-env",
     describe: "writes eth env file",
     builder: {
-        host: { string: true, default: "http://geth:9545" },
+        host: { string: true, default: "http://host.docker.internal:9545" },
         inboundStateSender: { string: true, default: "" },
         routerContract: { string: true, default: "" },
         ethAccPass: { string: true, default: consts.hermes_account_password },
@@ -184,6 +185,7 @@ export const writeNaradaEnvCommand = {
         includeDotChain: { boolean: true, default: false },
         includeSolChain: { boolean: true, default: false },
         includeGaiaChain: { boolean: true, default: false },
+        includeAAChain: { boolean: true, default: false },
         preparam: { string: true, default: "" },
     },
     handler: async (argv: any) => {

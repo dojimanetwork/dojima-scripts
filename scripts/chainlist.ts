@@ -1,7 +1,9 @@
-import { HermesInit, ComputeUnits } from "@dojima-wallet/connection";
+import { HermesInit, ComputeUnits, OperatorInit } from "@dojima-wallet/connection";
 import { Network } from "@dojima-wallet/types";
 import { Chain, ChainTicker, isEnabledChain, tickerToChain } from "@dojima-wallet/utils";
 import * as consts from "./consts";
+import { noop } from "@dojima-wallet/connection/dist/lib/operator-gateway/client";
+import { AddChainClientParam } from "@dojima-wallet/connection/dist/lib/operator-gateway/types";
 
 async function registerChain(hermesClient: HermesInit, chainId: number, chainTicker: ChainTicker, blkUnits: number, txUnits: number) {
     if (!isEnabledChain(chainTicker)) {
@@ -143,5 +145,53 @@ export const createEndpointCommand = {
         );
 
         await createEndpoint(hermesClient, argv.chainId, argv.chainTicker, argv.rpcUrl, argv.wsUrl);
+    },
+};
+
+async function registerClient(operatorClient: OperatorInit, chainTicker: ChainTicker, rpcUrl: string, wsUrl: string) {
+    if (!isEnabledChain(chainTicker)) {
+        throw new Error("Invalid chain ticker");
+    }
+
+    const chainData = tickerToChain(chainTicker);
+
+    const params: AddChainClientParam = {
+        chain: chainData,
+        rpcUrl,
+        wsUrl,
+    };
+
+    await operatorClient.client.addChainClient(params, (error: Error | null, response: any) => {
+        if (error) {
+            console.error("Error adding chain client:", error);
+        } else {
+            console.log("Chain client added successfully:", response);
+        }
+    });
+}
+
+export const registerClientCommand = {
+    command: "register-client",
+    describe: "Register a client",
+    builder: {
+        chainTicker: {
+            demandOption: true,
+            describe: "Chain ticker",
+            string: true,
+        },
+        rpcUrl: {
+            demandOption: true,
+            describe: "RPC URL",
+            string: true,
+        },
+        wsUrl: {
+            demandOption: true,
+            describe: "Websocket URL",
+            string: true,
+        },
+    },
+    handler: async (argv: any) => {
+        const operatorClient = new OperatorInit(argv.operatorServerUrl);
+        await registerClient(operatorClient, argv.chainTicker, argv.rpcUrl, argv.wsUrl);
     },
 };

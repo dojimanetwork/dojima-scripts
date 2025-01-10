@@ -96,7 +96,7 @@ services:
 
   hermes:
     hostname: hermesnode
-    image: dojimanetwork1401/hermes:f88b9de0_1.0.0
+    image: dojimanetwork1401/hermes:51f2dc70_1.0.0
     volumes:
       - "hermes-data:/hermes-data"
       - "hermesnode:/root/.hermesnode"
@@ -126,7 +126,7 @@ services:
 
   narada:
     hostname: narada
-    image: dojimanetwork1401/hermes:f88b9de0_1.0.0
+    image: dojimanetwork1401/hermes:51f2dc70_1.0.0
     ports:
       - 5040:5040
       - 6040:6040
@@ -159,7 +159,9 @@ services:
     command: [ "nginx", "-g", "daemon off;" ]
 
   operator-gateway:
-    image: dojimanetwork1401/operator-gateway:ddd9dd6_1.0.0
+    build:
+      context: /Users/tikaryan/go/src/github.com/dojimanetwork/operator-gateway
+      dockerfile: Dockerfile
     ports:
       - 8080:8080
       - 1219:1219
