@@ -7,7 +7,7 @@ async function createOperator(hermesClient: HermesInit, serverUrl: string, stake
     const hermesAddress = hermesClient.h4sConnect.getAddress();
     console.log("H4S address :: ", hermesAddress);
     const bal = await hermesClient.h4sConnect.getBalance(hermesAddress, [AssetDOJNative]);
-    console.log("H4S Balance :: ", bal);
+    console.log("H4S Asset :: ", bal[0].asset);
     const h4sBalance = baseToAsset(bal[0].amount).amount().toNumber();
     console.log("H4S Balance :: ", h4sBalance);
 

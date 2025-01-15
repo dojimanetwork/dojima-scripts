@@ -173,14 +173,13 @@ services:
   crawler:
     profiles:
       - crawler
+    restart: on-failure
     build:
       context: /Users/tikaryan/go/src/github.com/dojimanetwork/crawler
       dockerfile: Dockerfile
     env_file:
       - path: "./config/.hermes.env"
         required: false
-    environment:
-      - INCLUDE_DOJ_CHAIN=false
     volumes:
       - "crawler:/etc/crawler"
       - "hermesnode:/root/.hermesnode"

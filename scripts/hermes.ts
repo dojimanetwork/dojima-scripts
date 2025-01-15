@@ -89,6 +89,8 @@ function writeNaradaConfig(argv: any) {
         chainRpc: argv.chainRpc,
         eddsaHost: argv.eddsaHost,
         blockScannerBackoff: argv.blockScannerBackoff,
+        httpAuthHost: argv.httpAuthHost,
+        httpAuthPort: argv.httpAuthPort,
         includeEthChain: argv.includeEthChain,
         includeDojChain: argv.includeDojChain,
         includeAvaxChain: argv.includeAvaxChain,
@@ -98,7 +100,7 @@ function writeNaradaConfig(argv: any) {
         includeDotChain: argv.includeDotChain,
         includeSolChain: argv.includeSolChain,
         includeGaiaChain: argv.includeGaiaChain,
-        includeAAChain: argv.includeAAChain,
+        includeAaChain: argv.includeAaChain,
         preparam: preparam,
     }
 
@@ -159,7 +161,6 @@ export const writeDojimaEnvCommand = {
     builder: {
         dojimaChainId: { number: true, default: 184 },
         dojimaGrpcUrl: { string: true, default: "hermesnode:9090" },
-        dojimaRpcUrl: { string: true, default: "http://dojima-chain:8549" },
         dojimaSpanEnable: { boolean: true, default: false },
         dojimaSpanPollInterval: { string: true, default: "1s" },
     },
@@ -175,6 +176,8 @@ export const writeNaradaEnvCommand = {
         chainApi: { string: true, default: "hermesnode:1317" },
         chainRpc: { string: true, default: "hermesnode:26657" },
         eddsaHost: { string: true, default: "narada-eddsa:6049" },
+        httpAuthHost: { string: true, default: "host.docker.internal" },
+        httpAuthPort: { string: true, default: "1219" },
         blockScannerBackoff: { string: true, default: "5s" },
         includeEthChain: { boolean: true, default: false },
         includeDojChain: { boolean: true, default: false },
@@ -185,7 +188,7 @@ export const writeNaradaEnvCommand = {
         includeDotChain: { boolean: true, default: false },
         includeSolChain: { boolean: true, default: false },
         includeGaiaChain: { boolean: true, default: false },
-        includeAAChain: { boolean: true, default: false },
+        includeAaChain: { boolean: true, default: false },
         preparam: { string: true, default: "" },
     },
     handler: async (argv: any) => {

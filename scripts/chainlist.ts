@@ -47,6 +47,33 @@ async function createEndpoint(hermesClient: HermesInit, chainId: number, chainTi
     console.log("Endpoint created with tx hash :: ", txHash);
 }
 
+async function registerClient(operatorClient: OperatorInit, chainId: number, chainTicker: ChainTicker, rpcUrl: string, wsUrl: string) {
+    if (!isEnabledChain(chainTicker)) {
+        throw new Error("Invalid chain ticker");
+    }
+
+    const chainData = tickerToChain(chainTicker);
+
+    const params: AddChainClientParam = {
+        chain: {
+            name: chainData.name,
+            token: chainData.token,
+            ticker: chainData.ticker,
+            chainId: chainId.toString(),
+        },
+        rpcUrl,
+        wsUrl,
+    };
+
+    await operatorClient.client.addChainClient(params, (error: Error | null, response: any) => {
+        if (error) {
+            console.error("Error adding chain client:", error);
+        } else {
+            console.log("Chain client added successfully:", response);
+        }
+    });
+}
+
 export const registerChainCommand = {
     command: "register-chain",
     describe: "Register a new chain",
@@ -146,33 +173,6 @@ export const createEndpointCommand = {
         await createEndpoint(hermesClient, argv.chainId, argv.chainTicker, argv.rpcUrl, argv.wsUrl);
     },
 };
-
-async function registerClient(operatorClient: OperatorInit, chainId: number, chainTicker: ChainTicker, rpcUrl: string, wsUrl: string) {
-    if (!isEnabledChain(chainTicker)) {
-        throw new Error("Invalid chain ticker");
-    }
-
-    const chainData = tickerToChain(chainTicker);
-
-    const params: AddChainClientParam = {
-        chain: {
-            name: chainData.name,
-            token: chainData.token,
-            ticker: chainData.ticker,
-            chainId: chainId.toString(),
-        },
-        rpcUrl,
-        wsUrl,
-    };
-
-    await operatorClient.client.addChainClient(params, (error: Error | null, response: any) => {
-        if (error) {
-            console.error("Error adding chain client:", error);
-        } else {
-            console.log("Chain client added successfully:", response);
-        }
-    });
-}
 
 export const registerClientCommand = {
     command: "register-client",

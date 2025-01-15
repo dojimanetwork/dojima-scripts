@@ -109,13 +109,11 @@ create_operator() {
     docker compose run scripts create-operator --serverUrl "$serverUrl" --stakeAmount "$stakeAmount"
 }
 
-run_chain_setup() {
+register_chain() {
     local chainId=""
     local chainTicker=""
     local rpcUrl=""
     local wsUrl=""
-    local serverUrl="host.docker.internal:1219"  # Default value
-    local stakeAmount=10000                       # Default value
 
     # Parse named parameters
     while [[ "$#" -gt 0 ]]; do
@@ -124,8 +122,6 @@ run_chain_setup() {
             --chainTicker) chainTicker="$2"; shift ;;
             --rpcUrl) rpcUrl="$2"; shift ;;
             --wsUrl) wsUrl="$2"; shift ;;
-            --serverUrl) serverUrl="$2"; shift ;;
-            --stakeAmount) stakeAmount="$2"; shift ;;
             *) echo "Unknown parameter: $1"; return 1 ;;
         esac
         shift
@@ -137,10 +133,6 @@ run_chain_setup() {
         return 1
     fi
 
-    # Setup operator gateway and crawler
-    echo == Creating operator
-    docker compose run scripts create-operator --serverUrl "$serverUrl" --stakeAmount "$stakeAmount"
-
     sleep 5
     echo == Registering chain data
     docker compose run scripts register-chain --chainId "$chainId" --chainTicker "$chainTicker"
@@ -148,14 +140,23 @@ run_chain_setup() {
     sleep 5
     echo == Creating endpoint
     docker compose run scripts create-endpoint --chainId "$chainId" --chainTicker "$chainTicker" --rpcUrl "$rpcUrl" --wsUrl "$wsUrl"
+}
 
+start_operator() {
     echo == Starting operator gateway nginx
     docker compose up --wait operator-gateway-nginx
 
     echo == Starting operator gateway
     docker compose up --wait operator-gateway
+}
 
-    echo "Register Client"
+register_client() {
+    local chainId="$1"
+    local chainTicker="$2"
+    local rpcUrl="$3"
+    local wsUrl="$4"
+
+    echo "Registering client for $chainTicker"
     docker compose run scripts register-client --chainId "$chainId" --chainTicker "$chainTicker" --rpcUrl "$rpcUrl" --wsUrl "$wsUrl"
 }
 
@@ -335,11 +336,26 @@ if $force_init; then
     fi
 
     if $run_operator_gateway; then
+        echo == Creating operator
+        docker compose run scripts create-operator --serverUrl "host.docker.internal:1219" --stakeAmount "10000"
+
         if $run_geth; then
-            run_chain_setup --chainId 1002 --chainTicker ETH --rpcUrl "http://host.docker.internal:9545" --wsUrl "ws://geth:9545" --serverUrl "host.docker.internal:1219" --stakeAmount 10000
+            register_chain --chainId 1002 --chainTicker ETH --rpcUrl "http://host.docker.internal:9545" --wsUrl "ws://geth:9545"
         fi
         if $run_dojima; then
-            run_chain_setup --chainId 1002 --chainTicker DOJ --rpcUrl "http://host.docker.internal:9545" --wsUrl "ws://dojimachain:9545" --serverUrl "host.docker.internal:1219" --stakeAmount 10000
+            register_chain --chainId 1002 --chainTicker DOJ --rpcUrl "http://host.docker.internal:8549" --wsUrl "ws://dojimachain:8549"
+        fi
+
+        # Start the operator gateway
+        start_operator
+
+         # Register client for both chains
+        if $run_geth; then
+            register_client 1002 "ETH" "http://host.docker.internal:9545" "ws://geth:9545"
+        fi
+
+        if $run_dojima; then
+            register_client 1002 "DOJ" "http://host.docker.internal:8549" "ws://dojimachain:8549"
         fi
 
         if $run_crawler; then
