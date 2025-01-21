@@ -83,7 +83,7 @@ generate_env_file() {
         fi
 
         if $run_aa; then
-            narada_flags="$narada_flags --includeAAChain"
+            narada_flags="$narada_flags --includeArtheraChain"
         fi
 
         echo == Generate narada env

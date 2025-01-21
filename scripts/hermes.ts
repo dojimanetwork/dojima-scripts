@@ -100,7 +100,7 @@ function writeNaradaConfig(argv: any) {
         includeDotChain: argv.includeDotChain,
         includeSolChain: argv.includeSolChain,
         includeGaiaChain: argv.includeGaiaChain,
-        includeAaChain: argv.includeAaChain,
+        includeArtheraChain: argv.includeArtheraChain,
         preparam: preparam,
     }
 

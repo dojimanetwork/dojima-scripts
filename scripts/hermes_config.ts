@@ -56,6 +56,6 @@ export interface NaradaConfig {
     includeDotChain: boolean;
     includeSolChain: boolean;
     includeGaiaChain: boolean;
-    includeAaChain: boolean;
+    includeArtheraChain: boolean;
     preparam: string;
 }
