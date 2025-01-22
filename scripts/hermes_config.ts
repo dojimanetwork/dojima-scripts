@@ -45,6 +45,8 @@ export interface NaradaConfig {
     chainRpc: string;
     eddsaHost: string;
     blockScannerBackoff: string;
+    httpAuthHost: string;
+    httpAuthPort: string;
     includeEthChain: boolean;
     includeDojChain: boolean;
     includeAvaxChain: boolean;
@@ -54,5 +56,6 @@ export interface NaradaConfig {
     includeDotChain: boolean;
     includeSolChain: boolean;
     includeGaiaChain: boolean;
+    includeArtheraChain: boolean;
     preparam: string;
 }

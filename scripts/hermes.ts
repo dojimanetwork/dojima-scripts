@@ -1,10 +1,14 @@
 
 import * as fs from "fs";
-import path from 'path';
+import { HermesInit, DOJ_DECIMAL } from "@dojima-wallet/connection";
+import { Network } from "@dojima-wallet/types";
 
 import * as consts from "./consts";
 import { HermesConfig, EthConfig, DojimaConfig, NaradaConfig } from "./hermes_config";
-import { describe } from "yargs";
+import { assetToBase, assetAmount, AssetDOJNative, baseToAsset, Address } from "@dojima-wallet/utils";
+import { TxParams } from "@dojima-wallet/connection/dist/lib/client";
+import { number } from "yargs";
+
 
 // this function will take the flags and write the env file for the hermes node
 async function writeHermesEnv(argv: any) {
@@ -89,6 +93,8 @@ function writeNaradaConfig(argv: any) {
         chainRpc: argv.chainRpc,
         eddsaHost: argv.eddsaHost,
         blockScannerBackoff: argv.blockScannerBackoff,
+        httpAuthHost: argv.httpAuthHost,
+        httpAuthPort: argv.httpAuthPort,
         includeEthChain: argv.includeEthChain,
         includeDojChain: argv.includeDojChain,
         includeAvaxChain: argv.includeAvaxChain,
@@ -98,6 +104,7 @@ function writeNaradaConfig(argv: any) {
         includeDotChain: argv.includeDotChain,
         includeSolChain: argv.includeSolChain,
         includeGaiaChain: argv.includeGaiaChain,
+        includeArtheraChain: argv.includeArtheraChain,
         preparam: preparam,
     }
 
@@ -107,6 +114,32 @@ function writeNaradaConfig(argv: any) {
     } else {
         fs.writeFileSync(consts.hermes_env, naradaEnv);
     }
+}
+
+async function fundHermesSecondaryAccount(hermesClient: HermesInit, amount: number, retryCount: number = 0): Promise<number> {
+    const hermesSecondaryAddress = await hermesClient.h4sConnect.getAddress(0, 1); // 1 is the index of the secondary account
+    console.log("Hermes secondary address: ", hermesSecondaryAddress);
+
+    const txParams: TxParams = {
+        amount: assetToBase(assetAmount(amount, DOJ_DECIMAL)),
+        recipient: hermesSecondaryAddress,
+    }
+    const txHash = await hermesClient.h4sConnect.transfer(txParams);
+    console.log("Hermes secondary account funded with tx hash: ", txHash);
+
+    const balances = await hermesClient.h4sConnect.getBalance(hermesSecondaryAddress, [AssetDOJNative]);
+    const balance = baseToAsset(balances[0].amount).amount().toNumber();
+    console.log("Hermes secondary account balance: ", balance);
+
+    return balance;
+}
+
+async function getHermesBalance(hermesClient: HermesInit, address: Address) {
+    const balances = await hermesClient.h4sConnect.getBalance(address, [AssetDOJNative]);
+    const balance = baseToAsset(balances[0].amount).amount().toNumber();
+    console.log("Hermes account: ", address, " balance: ", balance);
+
+    return balance;
 }
 
 export const writeHermesEnvCommand = {
@@ -142,7 +175,7 @@ export const writeEthEnvCommand = {
     command: "write-eth-env",
     describe: "writes eth env file",
     builder: {
-        host: { string: true, default: "http://geth:9545" },
+        host: { string: true, default: "http://host.docker.internal:9545" },
         inboundStateSender: { string: true, default: "" },
         routerContract: { string: true, default: "" },
         ethAccPass: { string: true, default: consts.hermes_account_password },
@@ -158,7 +191,6 @@ export const writeDojimaEnvCommand = {
     builder: {
         dojimaChainId: { number: true, default: 184 },
         dojimaGrpcUrl: { string: true, default: "hermesnode:9090" },
-        dojimaRpcUrl: { string: true, default: "http://dojima-chain:8549" },
         dojimaSpanEnable: { boolean: true, default: false },
         dojimaSpanPollInterval: { string: true, default: "1s" },
     },
@@ -174,6 +206,8 @@ export const writeNaradaEnvCommand = {
         chainApi: { string: true, default: "hermesnode:1317" },
         chainRpc: { string: true, default: "hermesnode:26657" },
         eddsaHost: { string: true, default: "narada-eddsa:6049" },
+        httpAuthHost: { string: true, default: "host.docker.internal" },
+        httpAuthPort: { string: true, default: "1219" },
         blockScannerBackoff: { string: true, default: "5s" },
         includeEthChain: { boolean: true, default: false },
         includeDojChain: { boolean: true, default: false },
@@ -184,6 +218,7 @@ export const writeNaradaEnvCommand = {
         includeDotChain: { boolean: true, default: false },
         includeSolChain: { boolean: true, default: false },
         includeGaiaChain: { boolean: true, default: false },
+        includeAaChain: { boolean: true, default: false },
         preparam: { string: true, default: "" },
     },
     handler: async (argv: any) => {
@@ -206,3 +241,65 @@ function convertToEnv(config: any) {
 
     return env;
 }
+
+export const fundHermesSecondaryAccountCommand = {
+    command: "fund-hermes-secondary-account",
+    describe: "fund hermes secondary account",
+    builder: {
+        amount: { number: true, default: 10 },
+        hermesPhrase: {
+            demandOption: true,
+            describe: "Hermes phrase",
+            string: true,
+            default: consts.dojima_hermes_mnemonic,
+        },
+        network: {
+            demandOption: true,
+            describe: "Network",
+            string: true,
+            default: Network.Testnet,
+        },
+    },
+    handler: async (argv: any) => {
+        const hermesClient = new HermesInit(
+            argv.hermesPhrase,
+            argv.network,
+            argv.hermesApiUrl,
+            argv.hermesRpcUrl,
+        );
+        await fundHermesSecondaryAccount(hermesClient, argv.amount);
+    },
+};
+
+export const getHermesBalanceCommand = {
+    command: "get-hermes-balance",
+    describe: "get hermes balance",
+    builder: {
+        address: {
+            demandOption: true,
+            describe: "Hermes address",
+            string: true,
+        },
+        hermesPhrase: {
+            demandOption: true,
+            describe: "Hermes phrase",
+            string: true,
+            default: consts.dojima_hermes_mnemonic,
+        },
+        network: {
+            demandOption: true,
+            describe: "Network",
+            string: true,
+            default: Network.Testnet,
+        },
+    },
+    handler: async (argv: any) => {
+        const hermesClient = new HermesInit(
+            argv.hermesPhrase,
+            argv.network,
+            argv.hermesApiUrl,
+            argv.hermesRpcUrl,
+        );
+        await getHermesBalance(hermesClient, argv.address);
+    },
+};

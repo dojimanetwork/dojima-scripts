@@ -14,12 +14,11 @@ async function createDOJPool(dojClient: DojimaInit, hermesClient: HermesInit, do
     const hermesAddress = hermesClient.h4sConnect.getAddress();
     console.log("H4S address :: ", hermesAddress);
     const bal = await hermesClient.h4sConnect.getBalance(hermesAddress, [AssetDOJNative]);
-    console.log("H4S Balance :: ", bal);
+    console.log("H4S Asset Ticker :: ", bal[0].asset.ticker);
     const h4sBalance = baseToAsset(bal[0].amount).amount().toNumber();
     console.log("H4S Balance :: ", h4sBalance);
 
     if (dojBalance > dojAmount && h4sBalance > hermesAmount) {
-        console.log("Creating DOJ pool", hermesClient.h4sConnect.getClientUrl().node);
         const dojInboundAddress = await dojClient.dojConnect.getDojimaInboundAddress(hermesClient.h4sConnect.getClientUrl().node);
         console.log("DOJ Inbound Address :: ", dojInboundAddress);
 
@@ -174,8 +173,8 @@ export const createETHPoolCommand = {
         const hermesClient = new HermesInit(
             argv.hermesPhrase,
             argv.network,
-            argv.hermesRpcUrl,
-            argv.hermesApiUrl
+            argv.hermesApiUrl,
+            argv.hermesRpcUrl
         );
 
         await createETHPool(ethClient, hermesClient, argv.ethAmount, argv.hermesAmount);
