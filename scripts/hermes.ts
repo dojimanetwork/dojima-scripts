@@ -1,10 +1,14 @@
 
 import * as fs from "fs";
-import path from 'path';
+import { HermesInit, DOJ_DECIMAL } from "@dojima-wallet/connection";
+import { Network } from "@dojima-wallet/types";
 
 import * as consts from "./consts";
 import { HermesConfig, EthConfig, DojimaConfig, NaradaConfig } from "./hermes_config";
-import { describe } from "yargs";
+import { assetToBase, assetAmount, AssetDOJNative, baseToAsset, Address } from "@dojima-wallet/utils";
+import { TxParams } from "@dojima-wallet/connection/dist/lib/client";
+import { number } from "yargs";
+
 
 // this function will take the flags and write the env file for the hermes node
 async function writeHermesEnv(argv: any) {
@@ -112,6 +116,32 @@ function writeNaradaConfig(argv: any) {
     }
 }
 
+async function fundHermesSecondaryAccount(hermesClient: HermesInit, amount: number, retryCount: number = 0): Promise<number> {
+    const hermesSecondaryAddress = await hermesClient.h4sConnect.getAddress(0, 1); // 1 is the index of the secondary account
+    console.log("Hermes secondary address: ", hermesSecondaryAddress);
+
+    const txParams: TxParams = {
+        amount: assetToBase(assetAmount(amount, DOJ_DECIMAL)),
+        recipient: hermesSecondaryAddress,
+    }
+    const txHash = await hermesClient.h4sConnect.transfer(txParams);
+    console.log("Hermes secondary account funded with tx hash: ", txHash);
+
+    const balances = await hermesClient.h4sConnect.getBalance(hermesSecondaryAddress, [AssetDOJNative]);
+    const balance = baseToAsset(balances[0].amount).amount().toNumber();
+    console.log("Hermes secondary account balance: ", balance);
+
+    return balance;
+}
+
+async function getHermesBalance(hermesClient: HermesInit, address: Address) {
+    const balances = await hermesClient.h4sConnect.getBalance(address, [AssetDOJNative]);
+    const balance = baseToAsset(balances[0].amount).amount().toNumber();
+    console.log("Hermes account: ", address, " balance: ", balance);
+
+    return balance;
+}
+
 export const writeHermesEnvCommand = {
     command: "write-hermes-env",
     describe: "writes hermes env file",
@@ -211,3 +241,65 @@ function convertToEnv(config: any) {
 
     return env;
 }
+
+export const fundHermesSecondaryAccountCommand = {
+    command: "fund-hermes-secondary-account",
+    describe: "fund hermes secondary account",
+    builder: {
+        amount: { number: true, default: 10 },
+        hermesPhrase: {
+            demandOption: true,
+            describe: "Hermes phrase",
+            string: true,
+            default: consts.dojima_hermes_mnemonic,
+        },
+        network: {
+            demandOption: true,
+            describe: "Network",
+            string: true,
+            default: Network.Testnet,
+        },
+    },
+    handler: async (argv: any) => {
+        const hermesClient = new HermesInit(
+            argv.hermesPhrase,
+            argv.network,
+            argv.hermesApiUrl,
+            argv.hermesRpcUrl,
+        );
+        await fundHermesSecondaryAccount(hermesClient, argv.amount);
+    },
+};
+
+export const getHermesBalanceCommand = {
+    command: "get-hermes-balance",
+    describe: "get hermes balance",
+    builder: {
+        address: {
+            demandOption: true,
+            describe: "Hermes address",
+            string: true,
+        },
+        hermesPhrase: {
+            demandOption: true,
+            describe: "Hermes phrase",
+            string: true,
+            default: consts.dojima_hermes_mnemonic,
+        },
+        network: {
+            demandOption: true,
+            describe: "Network",
+            string: true,
+            default: Network.Testnet,
+        },
+    },
+    handler: async (argv: any) => {
+        const hermesClient = new HermesInit(
+            argv.hermesPhrase,
+            argv.network,
+            argv.hermesApiUrl,
+            argv.hermesRpcUrl,
+        );
+        await getHermesBalance(hermesClient, argv.address);
+    },
+};

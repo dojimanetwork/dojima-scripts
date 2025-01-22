@@ -173,8 +173,8 @@ export const createETHPoolCommand = {
         const hermesClient = new HermesInit(
             argv.hermesPhrase,
             argv.network,
-            argv.hermesRpcUrl,
-            argv.hermesApiUrl
+            argv.hermesApiUrl,
+            argv.hermesRpcUrl
         );
 
         await createETHPool(ethClient, hermesClient, argv.ethAmount, argv.hermesAmount);

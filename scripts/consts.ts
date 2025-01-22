@@ -40,6 +40,7 @@ export const dojima_genesis_testnet = `
             "dojimachain": {
                 "jaipurBlock": 2,
                 "delhiBlock" :3,
+                "hermes_v1_91": 0,
                 "period": {
                     "0": 2
                 },

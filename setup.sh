@@ -93,22 +93,6 @@ generate_env_file() {
     cd ..
 }
 
-create_operator() {
-    echo == Setting up operator and crawler
-
-   while [[ "$#" -gt 0 ]]; do
-        case $1 in
-            --serverUrl) serverUrl="$2"; shift ;;
-            --stakeAmount) stakeAmount="$2"; shift ;;
-            *) echo "Unknown parameter: $1"; return 1 ;;
-        esac
-        shift
-    done
-
-    echo == Creating operator
-    docker compose run scripts create-operator --serverUrl "$serverUrl" --stakeAmount "$stakeAmount"
-}
-
 register_chain() {
     local chainId=""
     local chainTicker=""
@@ -313,7 +297,13 @@ if $force_init; then
         echo == Starting hermes
         docker compose up --wait hermes
 
-        sleep 10
+        echo "Wait for sometime for HERMESChain API to be ready..."
+        sleep 30
+
+        echo == Funding hermes secondary account
+        docker compose run scripts fund-hermes-secondary-account --amount 10
+        sleep 10 ## TODO: find a way to add balance in one go
+        docker compose run scripts fund-hermes-secondary-account --amount 10
     fi
 
     if $run_dojima; then
@@ -374,6 +364,11 @@ if $force_init; then
         if $create_doj_pool; then
             echo == Creating DOJ pool
             docker compose run scripts create-doj-pool --dojAmount 10 --hermesAmount 10
+        fi
+
+        if $create_eth_pool; then
+            echo == Creating ETH pool
+            docker compose run scripts create-eth-pool --ethAmount 10 --hermesAmount 10
         fi
     fi
 fi

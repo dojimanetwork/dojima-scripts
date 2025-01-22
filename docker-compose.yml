@@ -57,7 +57,7 @@ services:
 
   dojimachain:
     hostname: dojima-chain
-    image: dojimanetwork1401/dojimachain:3ae7e3156_3.0.0
+    image: dojimanetwork1401/dojimachain:1dd510309_3.0.0
     volumes:
       - "dojima-data:/dojima-data"
       - "dojima-keystore:/dojima-keystore"
@@ -91,6 +91,7 @@ services:
       --ws.addr=0.0.0.0
       --ws.api=personal,db,eth,net,web3,txpool,miner,admin,dojimachain
       --genesisfile=/dojima-config/dojima_genesis.json
+      --genesis
       --syncmode=full
       --gcmode=archive
 

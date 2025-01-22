@@ -3,7 +3,7 @@ import Yargs from "yargs/yargs";
 
 import { writeGethAccountsCommand, writeDojimaAccountCommand } from "./account";
 import { writeGethConfigCommand, writeDojimaConfigCommand } from "./config";
-import { writeHermesEnvCommand, writeEthEnvCommand, writeDojimaEnvCommand, writeNaradaEnvCommand } from "./hermes";
+import { writeHermesEnvCommand, writeEthEnvCommand, writeDojimaEnvCommand, writeNaradaEnvCommand, fundHermesSecondaryAccountCommand, getHermesBalanceCommand } from "./hermes";
 import { createDOJPoolCommand, createETHPoolCommand } from "./pools";
 import { createOperatorCommand } from "./operator";
 import { registerChainCommand, createEndpointCommand, registerClientCommand } from "./chainlist";
@@ -28,6 +28,8 @@ async function main() {
         .command(writeEthEnvCommand)
         .command(writeDojimaEnvCommand)
         .command(writeNaradaEnvCommand)
+        .command(fundHermesSecondaryAccountCommand)
+        .command(getHermesBalanceCommand)
         .command(createDOJPoolCommand)
         .command(createETHPoolCommand)
         .command(createOperatorCommand)
