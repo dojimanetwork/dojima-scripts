@@ -364,11 +364,13 @@ if $force_init; then
         if $create_doj_pool; then
             echo == Creating DOJ pool
             docker compose run scripts create-doj-pool --dojAmount 10 --hermesAmount 10
+            sleep 5
         fi
 
         if $create_eth_pool; then
             echo == Creating ETH pool
             docker compose run scripts create-eth-pool --ethAmount 10 --hermesAmount 10
+            sleep 5
         fi
     fi
 fi
